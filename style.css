@@ -1,0 +1,87 @@
+html, body {
+    margin: 0; 
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    color: black;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+}
+
+.display {
+    width: 99%;
+    margin: auto;
+    border: 1px solid #d2d2d2;
+    border-radius: 16px;
+    box-sizing: border-box;
+    padding: 10px 14px 0 10px;
+    margin-bottom: 10px;
+}
+
+.result {
+    height: 20px;
+    color: #70757a;
+    font-size: 14px;
+    font-family: Verdana, sans-serif;
+    text-align: right;
+    font-weight: normal;
+}
+
+.input {
+    width: 100%;
+    height: 40px;
+    text-align: right;
+    font-size: 30px;
+    font-weight: normal;
+    font-family: Verdana, sans-serif;
+}
+
+.buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    width: 500px;
+}
+
+button {
+    font-size: 18px;
+    font-family: Verdana, sans-serif;
+    font-weight: lighter;
+    height: 50px;
+    flex: 1 0 20%;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+}
+
+.num {
+    background-color: #f3f5f6;
+}
+
+.num:hover {
+    background-color: #EAEAEA;
+}
+
+.num:active, .operator:active, .equal:active {
+    box-shadow: 0 0 10px #cdcdcd;
+}
+
+.operator {
+    background-color: #d0eeee;
+}
+
+.equal {
+    background-color: #24a9a8;
+}
+
+.operator:hover {
+    background-color: #b8dcdc;
+}
