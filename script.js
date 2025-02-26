@@ -22,6 +22,15 @@ let precedence = {
     "÷": 1
 }
 
+let postfixPrecedence = {
+    "(": 0,
+    ")": 0,
+    "+": 1,
+    "-": 1,
+    "×": 2,
+    "÷": 2
+}
+
 document.addEventListener("keydown", (event) => {
     const validChars = /[0-9()+\-*/.]/;
 
@@ -52,9 +61,11 @@ buttons.addEventListener("click", (event) => {
         expression = handleDot(expression);
     }
     else if(clicked.matches("button")){
+        // if clicked could be first char -> replace the 0
         if(clicked.classList.contains("first") && expression === "0")
             expression = clicked.textContent;
-        else
+        // do not allow parentheses nor operators to come directly after a xdot
+        else if(!(expression.at(-1) === "." && clicked.textContent in postfixPrecedence))
             expression += clicked.textContent;
 
         expression = handleOperators(expression);
@@ -64,10 +75,10 @@ buttons.addEventListener("click", (event) => {
 });
 
 function handleOperators(expression){
-    // there were two operators before
+    // three operators
     if(expression.at(-1) in precedence && expression.at(-2) in precedence && expression.at(-3) in precedence)
         expression = expression.slice(0, -1);
-    // there was only one operator before
+    // two operators
     else if(expression.at(-1) in precedence && expression.at(-2) in precedence){
         let op1 = expression.at(-2);
         let op2 = expression.at(-1);
@@ -87,9 +98,13 @@ function handleOperators(expression){
 function handleDot(expression){
     let lastChar = expression.at(-1);
 
+    if (!(lastChar>='0' && lastChar<='9')){
+        return expression;
+    }
+
     for (let i = expression.length-1; i>=0; i--){
         let currChar = expression[i];
-        if ((i === 0 || currChar in precedence) && (lastChar>='0' && lastChar<='9')){
+        if (i === 0 || currChar in precedence){
             expression += ".";
             break;
         }
