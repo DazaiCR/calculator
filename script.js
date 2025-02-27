@@ -31,13 +31,46 @@ let postfixPrecedence = {
 }
 
 document.addEventListener("keydown", (event) => {
-    const validChars = /[0-9()+\-*/.]/;
+    let clicked = event.key;
+    let expression = input.textContent;
 
-    if(event.key.match(validChars)){
-        input.textContent += event.key;
+    const validChars = /[0-9()+\-*/]/;
+    
+    if(clicked === "Backspace"){
+        expression = expression.slice(0, -1);
+        if(!expression)
+            expression = "0";
+        input.textContent = expression;
     }
-    else if(event.key === "Backspace"){
-        input.textContent = input.textContent.slice(0, -1);
+    else if(clicked === "Enter"){
+        let result = handleEqual(expression);
+        input.textContent = result.toString();
+    }
+    else if(clicked === "."){
+        expression = handleDot(expression);
+        input.textContent = expression;
+    }
+    else if(clicked.match(validChars)){
+        if(clicked === "/")
+            clicked = "÷";
+        else if(clicked === "*")
+            clicked = "×";
+
+        // error message as previous result
+        if (expression.endsWith("!")) {
+            if(clicked.match(/[0-9(-]/))
+                expression = clicked;
+        }
+        // expression == 0 && clicked could be first
+        else if(clicked.match(/[0-9(-]/) && expression === "0")
+            expression = clicked;
+        // do not allow parentheses nor operators to come directly after a dot
+        else if(!(expression.at(-1) === "." && clicked in postfixPrecedence)) {
+            expression += clicked;
+            expression = handleOperators(expression);
+        }
+
+        input.textContent = expression;
     }
 });
 
@@ -64,14 +97,20 @@ buttons.addEventListener("click", (event) => {
         input.textContent = expression;
     }
     else if(clicked.matches("button")){
-        // if clicked could be first char -> replace the 0
-        if(clicked.classList.contains("first") && expression === "0")
+        // error message as previous result
+        if (expression.endsWith("!")) {
+            if(clicked.classList.contains("first"))
+                expression = clicked.textContent;
+        }
+        // expression == 0 && clicked could be first
+        else if (clicked.classList.contains("first") && expression === "0")
             expression = clicked.textContent;
         // do not allow parentheses nor operators to come directly after a dot
-        else if(!(expression.at(-1) === "." && clicked.textContent in postfixPrecedence))
+        else if (!(expression.at(-1) === "." && clicked.textContent in postfixPrecedence)){
             expression += clicked.textContent;
+            expression = handleOperators(expression);
+        }
 
-        expression = handleOperators(expression);
         input.textContent = expression;
     }
 });
