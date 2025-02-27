@@ -11,7 +11,6 @@ const operate = function(num1, operator, num2){
     return operations[operator](num1, num2);
 }
 
-
 const input = document.querySelector(".input");
 const buttons = document.querySelector(".buttons");
 
@@ -48,30 +47,33 @@ buttons.addEventListener("click", (event) => {
 
     if (clicked.classList.contains("ce")){
         expression = "0";
+        input.textContent = expression;
     }
     else if(clicked.classList.contains("del")){
         expression = expression.slice(0, -1);
         if(!expression)
-            expression = "0";    
+            expression = "0";
+        input.textContent = expression;
     }
     else if(clicked.classList.contains("equal")){
-        // ...
+        let result = handleEqual(expression);
+        input.textContent = result.toString();
     }
     else if(clicked.classList.contains("dot")){
         expression = handleDot(expression);
+        input.textContent = expression;
     }
     else if(clicked.matches("button")){
         // if clicked could be first char -> replace the 0
         if(clicked.classList.contains("first") && expression === "0")
             expression = clicked.textContent;
-        // do not allow parentheses nor operators to come directly after a xdot
+        // do not allow parentheses nor operators to come directly after a dot
         else if(!(expression.at(-1) === "." && clicked.textContent in postfixPrecedence))
             expression += clicked.textContent;
 
         expression = handleOperators(expression);
+        input.textContent = expression;
     }
-
-    input.textContent = expression;
 });
 
 function handleOperators(expression){
@@ -113,4 +115,169 @@ function handleDot(expression){
         }
     }
     return expression;
+}
+
+function convertToArray(expression){
+    let unary = false;
+    let r = 0, i = 0;
+    const arr = [];
+
+    while(r < expression.length) {
+        let curr = expression[r];
+        if(curr in postfixPrecedence && curr != "-"){
+            arr[i] = curr;
+            r++;
+            i++;
+        } 
+        else if(curr == "-"){
+            if(r == 0 || (r>=1 && (expression[r-1] == "×" || expression[r-1] == "÷")) )
+                unary = true;
+            else {
+                arr[i] = curr;
+                i++;
+            }
+            r++;
+        }
+        else {
+            let number;
+            if(unary){
+                number = "-" + curr;
+                unary = false;
+            }
+            else{   
+                number = curr;
+            }
+            r++;
+
+            while(r != expression.length && !(expression[r].match(/[()+\-×÷]/))){
+                number += expression[r];
+                r++;
+            }
+
+            number = Number(number);
+            arr[i] = number;
+            i++;
+        }
+    }
+
+    if(unary)
+        arr[arr.length] = "-";
+
+    return arr;
+}
+
+function checkOperatorsNumber(arr){
+    let operators = 0, numbers = 0;
+
+    for(let i=0; i<arr.length; i++){
+        if(Number(arr[i]) || arr[i] === 0)
+            numbers++;
+        else if(typeof arr[i] === 'string' && arr[i].match(/[+\-×÷]/))
+            operators++;
+    }
+
+    return (operators == (numbers - 1));
+}
+
+function checkParentheses(arr){
+    const parentheses = [];
+
+    for(let i=0; i<arr.length; i++){
+        if(arr[i] === "(")
+            parentheses.push(arr[i]);
+        else if(arr[i] === ")"){
+            if (parentheses.length === 0)
+                return false;
+            parentheses.pop();
+        }
+    }
+
+    return parentheses.length === 0 ? true : false;
+}
+
+function convertToPostfix(arr){
+    const stack = [];
+    const postfix = [];
+
+    for(let i=0; i<arr.length; i++){
+        if (arr[i] === "("){
+            stack.push(arr[i]);
+        }
+        else if (arr[i] === ")"){
+            while(true){
+                let operator = stack.pop();
+                if(operator === "(" || operator === undefined) {
+                    break;
+                }
+                else {
+                    postfix.push(operator);
+                }
+            }
+        }
+        else if (Number(arr[i])){
+            postfix.push(arr[i]);
+        }
+        else{
+            let currOperator = arr[i];
+            let topOperator = stack.at(-1);
+
+            if (stack.length === 0 || postfixPrecedence[currOperator] > postfixPrecedence[topOperator])
+                stack.push(arr[i]);
+            else {
+                while(stack.length != 0 && (postfixPrecedence[currOperator] <= postfixPrecedence[topOperator] || topOperator === "(")){
+                    let operator = stack.pop();
+                    postfix.push(operator);
+                    topOperator = stack.at(-1);
+                }
+                stack.push(arr[i]);
+            }
+        }
+    }
+
+    while (stack.length != 0){
+        let operator = stack.pop();
+        postfix.push(operator);
+    }
+
+    return postfix;
+}
+
+function evaluatePostfix(postfix){
+    let stack = [];
+
+    for(let i=0; i<postfix.length; i++){
+        if(Number(postfix[i]) || postfix[i] === 0){
+            stack.push(postfix[i]);
+        }
+        else {
+            let num2 = stack.pop();
+            let num1 = stack.pop();
+            let result = operate(num1, postfix[i], num2);
+            stack.push(result);
+        }
+
+    }
+
+    return stack.at(0);
+}
+
+function handleEqual(expression){
+    let arr = convertToArray(expression);
+
+    let balancedInOperators = checkOperatorsNumber(arr);
+    if(!balancedInOperators){
+        input.textContent = "Invalid expression!";
+        return;
+    }
+    
+    let balancedParentheses = checkParentheses(arr);
+    if(!balancedParentheses){
+        input.textContent = "Unbalanced parentheses!";
+        return;
+    }
+
+    let postfix = convertToPostfix(arr);
+    let result = evaluatePostfix(postfix);
+    
+    return result;
 }
