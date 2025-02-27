@@ -130,7 +130,7 @@ function convertToArray(expression){
             i++;
         } 
         else if(curr == "-"){
-            if(r == 0 || (r>=1 && (expression[r-1] == "×" || expression[r-1] == "÷")) )
+            if(r == 0 || (r>=1 && (expression[r-1] == "×" || expression[r-1] == "÷" || expression[r-1] == "(")) )
                 unary = true;
             else {
                 arr[i] = curr;
@@ -266,14 +266,12 @@ function handleEqual(expression){
 
     let balancedInOperators = checkOperatorsNumber(arr);
     if(!balancedInOperators){
-        input.textContent = "Invalid expression!";
-        return;
+        return "Invalid expression!";
     }
     
     let balancedParentheses = checkParentheses(arr);
     if(!balancedParentheses){
-        input.textContent = "Unbalanced parentheses!";
-        return;
+        return "Unbalanced parentheses!";
     }
 
     let postfix = convertToPostfix(arr);
