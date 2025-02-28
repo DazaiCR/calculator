@@ -169,8 +169,16 @@ function convertToArray(expression){
             i++;
         } 
         else if(curr == "-"){
-            if(r == 0 || (r>=1 && (expression[r-1] == "×" || expression[r-1] == "÷" || expression[r-1] == "(")) )
+            if(r == 0 || (r>=1 && (expression[r-1] === "×" || expression[r-1] === "÷" || expression[r-1] === "(")) ){
                 unary = true;
+                if(expression[r+1] === "("){
+                    arr[i] = -1;
+                    arr[i+1] = "×";
+                    i += 2;
+                    unary = false;
+                }
+
+            }
             else {
                 arr[i] = curr;
                 i++;
@@ -253,7 +261,7 @@ function convertToPostfix(arr){
                 }
             }
         }
-        else if (Number(arr[i])){
+        else if (Number(arr[i]) || arr[i] === 0){
             postfix.push(arr[i]);
         }
         else{
@@ -263,7 +271,7 @@ function convertToPostfix(arr){
             if (stack.length === 0 || postfixPrecedence[currOperator] > postfixPrecedence[topOperator])
                 stack.push(arr[i]);
             else {
-                while(stack.length != 0 && (postfixPrecedence[currOperator] <= postfixPrecedence[topOperator] || topOperator === "(")){
+                while(stack.length != 0 && (postfixPrecedence[currOperator] <= postfixPrecedence[topOperator] && topOperator != "(")){
                     let operator = stack.pop();
                     postfix.push(operator);
                     topOperator = stack.at(-1);
