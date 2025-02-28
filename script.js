@@ -13,6 +13,7 @@ const operate = function(num1, operator, num2){
 
 const input = document.querySelector(".input");
 const buttons = document.querySelector(".buttons");
+const ans = document.querySelector(".Ans");
 
 let precedence = {
     "+": 0,
@@ -48,6 +49,7 @@ document.addEventListener("keydown", (event) => {
         let result = handleEqual(expression);
         input.textContent = result.toString();
         equalClicked = true;
+        ans.textContent = `${expression} =`;
     }
     else if(clicked === "."){
         expression = handleDot(expression);
@@ -86,6 +88,7 @@ buttons.addEventListener("click", (event) => {
         let result = handleEqual(expression);
         input.textContent = result.toString();
         equalClicked = true;
+        ans.textContent = `${expression} =`;
     }
     else if(clicked.classList.contains("dot")){
         expression = handleDot(expression);
@@ -333,18 +336,20 @@ function writeAfterResult(clicked, expression){
     if (expression.endsWith("!")) {
         if(clicked.match(/[0-9(-]/))
             expression = clicked;
+        ans.textContent = "";
     }
     // if previous result == a number
     else {
+        ans.textContent = `Ans = ${expression}`;
         if (clicked.match(/[÷×+-]/)){
             expression = handleButtonsAndKeys(clicked, expression);
         }
         else if (clicked.match(/[0-9(-]/)) {
             expression = clicked;
         }
-
-        equalClicked = false;
     }
 
+    equalClicked = false;
+    
     return expression;
 }
