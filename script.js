@@ -30,6 +30,8 @@ let postfixPrecedence = {
     "÷": 2
 }
 
+let equalClicked = false;
+
 document.addEventListener("keydown", (event) => {
     let clicked = event.key;
     let expression = input.textContent;
@@ -45,6 +47,7 @@ document.addEventListener("keydown", (event) => {
     else if(clicked === "Enter"){
         let result = handleEqual(expression);
         input.textContent = result.toString();
+        equalClicked = true;
     }
     else if(clicked === "."){
         expression = handleDot(expression);
@@ -56,19 +59,10 @@ document.addEventListener("keydown", (event) => {
         else if(clicked === "*")
             clicked = "×";
 
-        // error message as previous result
-        if (expression.endsWith("!")) {
-            if(clicked.match(/[0-9(-]/))
-                expression = clicked;
-        }
-        // expression == 0 && clicked could be first
-        else if(clicked.match(/[0-9(-]/) && expression === "0")
-            expression = clicked;
-        // do not allow parentheses nor operators to come directly after a dot
-        else if(!(expression.at(-1) === "." && clicked in postfixPrecedence)) {
-            expression += clicked;
-            expression = handleOperators(expression);
-        }
+        if (equalClicked)
+            expression = writeAfterResult(clicked, expression);
+        else
+            expression = handleButtonsAndKeys(clicked, expression);
 
         input.textContent = expression;
     }
@@ -91,25 +85,18 @@ buttons.addEventListener("click", (event) => {
     else if(clicked.classList.contains("equal")){
         let result = handleEqual(expression);
         input.textContent = result.toString();
+        equalClicked = true;
     }
     else if(clicked.classList.contains("dot")){
         expression = handleDot(expression);
         input.textContent = expression;
     }
     else if(clicked.matches("button")){
-        // error message as previous result
-        if (expression.endsWith("!")) {
-            if(clicked.classList.contains("first"))
-                expression = clicked.textContent;
-        }
-        // expression == 0 && clicked could be first
-        else if (clicked.classList.contains("first") && expression === "0")
-            expression = clicked.textContent;
-        // do not allow parentheses nor operators to come directly after a dot
-        else if (!(expression.at(-1) === "." && clicked.textContent in postfixPrecedence)){
-            expression += clicked.textContent;
-            expression = handleOperators(expression);
-        }
+        if (equalClicked)
+            expression = writeAfterResult(clicked.textContent, expression);
+
+        else
+            expression = handleButtonsAndKeys(clicked.textContent, expression);
 
         input.textContent = expression;
     }
@@ -325,4 +312,39 @@ function handleEqual(expression){
     let result = evaluatePostfix(postfix);
     
     return result;
+}
+
+function handleButtonsAndKeys(clicked, expression){
+
+    // expression == 0 && clicked could be first
+    if(clicked.match(/[0-9(-]/) && expression === "0")
+        expression = clicked;
+    // do not allow parentheses nor operators to come directly after a dot
+    else if(!(expression.at(-1) === "." && clicked in postfixPrecedence)) {
+        expression += clicked;
+        expression = handleOperators(expression);
+    }
+
+    return expression;
+}
+
+function writeAfterResult(clicked, expression){
+    // if previous result = error message
+    if (expression.endsWith("!")) {
+        if(clicked.match(/[0-9(-]/))
+            expression = clicked;
+    }
+    // if previous result == a number
+    else {
+        if (clicked.match(/[÷×+-]/)){
+            expression = handleButtonsAndKeys(clicked, expression);
+        }
+        else if (clicked.match(/[0-9(-]/)) {
+            expression = clicked;
+        }
+
+        equalClicked = false;
+    }
+
+    return expression;
 }
